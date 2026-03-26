@@ -400,16 +400,19 @@ class App(tk.Tk):
             initialdir=os.path.dirname(os.path.abspath(__file__))
         )
         if path:
-            # Faýly proýekt klasörüne göçür
+            # Faýly dbc_files/ papkasyna göçür (find_dbc_files bilen gabat gelýär)
             fname = os.path.basename(path)
-            dest  = os.path.join(os.path.dirname(os.path.abspath(__file__)), fname)
-            if path != dest:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            dbc_dir = os.path.join(script_dir, 'dbc_files')
+            os.makedirs(dbc_dir, exist_ok=True)
+            dest = os.path.join(dbc_dir, fname)
+            if os.path.abspath(path) != os.path.abspath(dest):
                 import shutil
                 try:
                     shutil.copy2(path, dest)
-                    self._log_write(f"Göçürildi: {fname}")
+                    self._log_write(f"Gocurildi: {fname} -> dbc_files/")
                 except Exception as e:
-                    self._log_write(f"ÝALŇYŞLYK: Faýl göçürilmedi: {e}")
+                    self._log_write(f"YALNYSHLYK: Fayl gocurilmedi: {e}")
                     return
             self._refresh_dbc_list()
             self._var_dbc.set(fname)

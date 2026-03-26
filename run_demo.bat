@@ -1,8 +1,18 @@
 @echo off
-title CAN Dashboard - DEMO
+chcp 65001 >nul
+title Universal CAN Dashboard - DEMO
+
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo [YALNYSHLYK] Python tapylmady! setup.bat islet.
+    pause
+    exit /b 1
+)
+
+cd /d "%~dp0"
 python main.py --demo
 if errorlevel 1 (
     echo.
-    echo YALNYSHLYK! setup.bat islet.
+    echo Yalnyshlyk! setup.bat islet.
     pause
 )

@@ -72,14 +72,14 @@ def encode_acc_control(accel_mps2: float,
     """
     ACC_CONTROL (CAN ID: 0x343, 8 baýt)
 
-    DBC signallary:
-      ACCEL_CMD          : 7|16  → bytes 0-1 (signed, big-endian, factor=0.001)
-      PERMIT_BRAKING     : 16|1  → byte2 bit0
-      ALLOW_LONG_PRESS   : 17|2  → byte2 bits2-1  (=2 adatça)
-      CANCEL_REQ         : 24|1  → byte3 bit0
-      RELEASE_STANDSTILL : 26|1  → byte3 bit2
-      ACCEL_CMD_ALT      : 47|8  → byte5 (0 goýulýar)
-      CHECKSUM           : 63|8  → byte7
+    DBC signallary (Motorola byte order):
+      ACCEL_CMD          : 7|16@0-  → bytes 0-1 (signed, big-endian, factor=0.001)
+      ALLOW_LONG_PRESS   : 17|2@0+  → byte2 bits [1:0] (=2 adatça)
+      CANCEL_REQ         : 24|1@0+  → byte3 bit0
+      PERMIT_BRAKING     : 30|1@0+  → byte3 bit6
+      RELEASE_STANDSTILL : 31|1@0+  → byte3 bit7
+      ACCEL_CMD_ALT      : 47|8@0-  → byte5 (0 goýulýar)
+      CHECKSUM           : 63|8@0+  → byte7
     """
     accel_mps2 = max(MIN_ACCEL_MPS2, min(MAX_ACCEL_MPS2, accel_mps2))
     accel_int  = int(accel_mps2 / 0.001)
@@ -88,8 +88,8 @@ def encode_acc_control(accel_mps2: float,
     data    = bytearray(8)
     data[0] = (a_bytes >> 8) & 0xFF          # ACCEL_CMD high byte
     data[1] = a_bytes & 0xFF                 # ACCEL_CMD low byte
-    data[2] = 2 & 0x3                        # ALLOW_LONG_PRESS=2 (bits 1-0)
-    data[3] = (int(release_standstill) << 7) | (int(permit_braking) << 6) | int(cancel)
+    data[2] = 2 & 0x03                                  # ALLOW_LONG_PRESS=2 [byte2 bits1:0]
+    data[3] = (int(release_standstill) << 7) | (int(permit_braking) << 6) | int(cancel)  # RELEASE_STANDSTILL[bit7], PERMIT_BRAKING[bit6], CANCEL_REQ[bit0]
     data[4] = 0x00                           # ITS_CONNECT_LEAD=0
     data[5] = 0x00                           # ACCEL_CMD_ALT=0
     data[6] = 0x00

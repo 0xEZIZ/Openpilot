@@ -7,7 +7,18 @@
       "Bash(head:*)",
       "Bash(cd /d/toyota_can_project && python test_all.py 2>&1)",
       "Bash(cd /d/toyota_can_project && set PYTHONIOENCODING=utf-8 && python test_all.py 2>&1)",
-      "Bash(cd /d/toyota_can_project && python test_safety.py 2>&1)"
+      "Bash(cd /d/toyota_can_project && python test_safety.py 2>&1)",
+      "Bash(cd /d/toyota_can_project && python -m PyInstaller --version 2>&1)",
+      "Bash(python --version && python -m PyInstaller --version 2>&1)",
+      "Bash(tail:*)",
+      "Bash(grep:*)",
+      "Bash(sort:*)",
+      "Bash(D:/toyota_can_project/venv/Scripts/python.exe:*)",
+      "Bash(cmd:*)",
+      "Bash(echo:*)",
+      "Bash(python -m pytest test_all.py test_safety.py -v)",
+      "Bash(python test_all.py)",
+      "Bash(python test_safety.py)"
     ]
   }
 }

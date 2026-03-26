@@ -5,7 +5,10 @@ cantools bilen DBC ýükleýär, mümkin bolmasa qolda parse edýär.
 """
 import os
 import cantools
-from config import *
+from config import (
+    ID_STEER_ANGLE, ID_SPEED, ID_BRAKE, ID_GAS_PEDAL,
+    ID_WHEEL_SPEEDS, ID_PCM_CRUISE, ID_KINEMATICS,
+)
 
 # DBC faýlyny ýükle
 _DBC_PATH = os.path.join(os.path.dirname(__file__), 'toyota_corolla_2017.dbc')

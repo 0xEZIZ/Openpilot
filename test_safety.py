@@ -252,6 +252,90 @@ assert cancel is True
 print(f"  [OK] Override -> accel=0, cancel=True")
 
 
+# ======================================================================
+# 8. EPS_STATUS CAN Message Parsing Test (LKA_STATE bit extraction)
+# ======================================================================
+print("\n=== 8. EPS_STATUS LKA_STATE BIT EXTRACTION TEST ===")
+
+sm3 = SafetyManager()
+
+# DBC: LKA_STATE : 31|7@0+ (Motorola) -> byte3 bits [7:1]
+# DBC: TYPE      : 24|1@0+ -> byte3 bit0
+# Byte 3 = (LKA_STATE << 1) | TYPE
+
+# Test LKA_STATE=1 (standby) -> byte3 = (1 << 1) | 0 = 0x02
+eps_msg_standby = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x02, 0x00]),
+    is_extended_id=False
+)
+sm3.feed_can_msg(eps_msg_standby)
+assert not sm3.eps_monitor.has_fault, "LKA_STATE=1 should not be fault"
+assert sm3.eps_monitor.lka_state == 1, f"Expected LKA_STATE=1, got {sm3.eps_monitor.lka_state}"
+print(f"  [OK] LKA_STATE=1 (standby): byte3=0x02 -> parsed as {sm3.eps_monitor.lka_state}")
+
+# Test LKA_STATE=5 (active) -> byte3 = (5 << 1) | 0 = 0x0A
+eps_msg_active = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x0A, 0x00]),
+    is_extended_id=False
+)
+sm3.feed_can_msg(eps_msg_active)
+assert not sm3.eps_monitor.has_fault, "LKA_STATE=5 should not be fault"
+assert sm3.eps_monitor.lka_state == 5, f"Expected LKA_STATE=5, got {sm3.eps_monitor.lka_state}"
+print(f"  [OK] LKA_STATE=5 (active): byte3=0x0A -> parsed as {sm3.eps_monitor.lka_state}")
+
+# Test LKA_STATE=9 (fault) -> byte3 = (9 << 1) | 0 = 0x12
+eps_msg_fault = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x12, 0x00]),
+    is_extended_id=False
+)
+sm3.feed_can_msg(eps_msg_fault)
+assert sm3.eps_monitor.has_fault, "LKA_STATE=9 should be fault!"
+assert sm3.eps_monitor.lka_state == 9, f"Expected LKA_STATE=9, got {sm3.eps_monitor.lka_state}"
+print(f"  [OK] LKA_STATE=9 (fault): byte3=0x12 -> parsed as {sm3.eps_monitor.lka_state}")
+
+# Test LKA_STATE=25 (fault2) -> byte3 = (25 << 1) | 0 = 0x32
+sm3.eps_monitor.reset()
+eps_msg_fault2 = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x32, 0x00]),
+    is_extended_id=False
+)
+sm3.feed_can_msg(eps_msg_fault2)
+assert sm3.eps_monitor.has_fault, "LKA_STATE=25 should be fault!"
+assert sm3.eps_monitor.lka_state == 25, f"Expected LKA_STATE=25, got {sm3.eps_monitor.lka_state}"
+print(f"  [OK] LKA_STATE=25 (fault2): byte3=0x32 -> parsed as {sm3.eps_monitor.lka_state}")
+
+# Test with TYPE bit set (bit0=1): LKA_STATE=5 -> byte3 = (5 << 1) | 1 = 0x0B
+sm3.eps_monitor.reset()
+eps_msg_with_type = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x0B, 0x00]),
+    is_extended_id=False
+)
+sm3.feed_can_msg(eps_msg_with_type)
+assert not sm3.eps_monitor.has_fault, "LKA_STATE=5 with TYPE=1 should not be fault"
+assert sm3.eps_monitor.lka_state == 5, f"Expected LKA_STATE=5 with TYPE=1, got {sm3.eps_monitor.lka_state}"
+print(f"  [OK] LKA_STATE=5 + TYPE=1: byte3=0x0B -> parsed as {sm3.eps_monitor.lka_state}")
+
+# Test EPS fault -> disengage
+sm4 = SafetyManager()
+sm4.notify_steer_cmd()
+sm4.apply_steer(500, True)  # engage
+eps_fault = can.Message(
+    arbitration_id=0x262,
+    data=bytes([0x03, 0x00, 0x00, 0x12, 0x00]),  # LKA_STATE=9
+    is_extended_id=False
+)
+sm4.feed_can_msg(eps_fault)
+sm4.notify_steer_cmd()
+torque, req = sm4.apply_steer(500, True)
+assert req is False, "EPS fault should cause disengage"
+print(f"  [OK] EPS fault (LKA_STATE=9) -> disengage, steer_request=False")
+
+
 print("\n============================")
-print("ALL 7 SAFETY TESTS PASSED!")
+print("ALL 8 SAFETY TESTS PASSED!")
 print("============================")

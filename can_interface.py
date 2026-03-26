@@ -89,10 +89,12 @@ class CANInterface:
                 if msg and self.on_message:
                     self.on_message(msg)
             except can.CanError as e:
-                print(f"CAN okamak ýalňyşlygy: {e}")
+                print(f"CAN okamak yalnyslygy: {e}")
                 continue
-            except Exception:
-                pass
+            except Exception as e:
+                if not self._stop_event.is_set():
+                    print(f"CAN receive yalnyslygy: {e}")
+                break
 
     # ------------------------------------------------------------------
     # DEMO РЕЖИМ - real adapter ýok bolanda synag üçin
@@ -192,13 +194,23 @@ class CANInterface:
             # -- STEER_TORQUE_SENSOR (0x260 = 608) --
             # STEER_TORQUE_DRIVER: 15|16@0- → bytes 1(high) 2(low)
             # STEER_OVERRIDE: 0|1@0+ → byte0 bit0
-            driver_torq = int(steer * 2)
+            driver_torq = int(steer * 0.5)  # realistik sürüji torque (kiçi)
             dt_bytes = driver_torq & 0xFFFF
             d9 = bytearray(8)
-            d9[0] = 1 if abs(driver_torq) > 50 else 0  # STEER_OVERRIDE
-            d9[1] = (dt_bytes >> 8) & 0xFF              # TORQUE_DRIVER high
-            d9[2] = dt_bytes & 0xFF                     # TORQUE_DRIVER low
+            d9[0] = 1 if abs(driver_torq) > 100 else 0  # STEER_OVERRIDE (config threshold bilen deň)
+            d9[1] = (dt_bytes >> 8) & 0xFF               # TORQUE_DRIVER high
+            d9[2] = dt_bytes & 0xFF                      # TORQUE_DRIVER low
             self._fake_msg(0x260, d9)
+
+            # -- EPS_STATUS (0x262 = 610) --
+            # LKA_STATE: 31|7@0+ (Motorola) → byte3 bits [7:1]
+            # IPAS_STATE: 3|4@0+ → byte0 bits [3:0]
+            # TYPE: 24|1@0+ → byte3 bit0
+            d10 = bytearray(5)
+            lka_st = 1                             # 1=standby (demo üçin hemişe taýýar)
+            d10[0] = 3 & 0x0F                  # IPAS_STATE=3 (enabled)
+            d10[3] = (lka_st << 1) & 0xFE      # LKA_STATE bits [7:1]
+            self._fake_msg(0x262, d10)
 
             time.sleep(0.05)
 

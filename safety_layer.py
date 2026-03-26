@@ -289,8 +289,8 @@ class SafetyManager:
 
             # EPS_STATUS (0x262 = 610)
             elif mid == ID_EPS_STATUS and len(data) >= 5:
-                # LKA_STATE: 31|7@0+ → byte3 bits 6-0
-                lka_state = data[3] & 0x7F
+                # LKA_STATE: 31|7@0+ (Motorola) → byte3 bits [7:1]
+                lka_state = (data[3] >> 1) & 0x7F
                 # IPAS_STATE: 3|4@0+ → byte0 bits 3-0
                 ipas_state = data[0] & 0x0F
                 self.eps_monitor.update(lka_state, ipas_state)

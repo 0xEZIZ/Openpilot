@@ -15,6 +15,16 @@ Islendik DBC faýly:
   3. Signallar awtomatiki görünýär!
 """
 import sys
+import os
+
+# PyInstaller bilen islenende fayllary dogry tap
+if getattr(sys, 'frozen', False):
+    # .exe mod — _internal klasory sys._MEIPASS-da, DBC fayllar hem onda
+    _base = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+    os.chdir(_base)
+else:
+    # Normal Python mod
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 if '--demo' in sys.argv:
     import config
