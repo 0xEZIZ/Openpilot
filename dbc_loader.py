@@ -7,7 +7,27 @@ import os
 import glob
 import cantools
 
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+import sys
+
+
+def resource_path(relative_path):
+    """ Get absolute path to bundled resource (inside _MEIPASS or script dir) """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
+
+def _get_app_dir():
+    """Get persistent app directory (next to EXE, or script dir in dev)"""
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+_BUNDLE_DIR = resource_path(".")
+_APP_DIR = _get_app_dir()
 
 # Belli signal atlary → proýektiň içki ady
 _SIGNAL_MAP = {
@@ -45,16 +65,37 @@ _SIGNAL_MAP = {
 }
 
 def find_dbc_files(folder=None):
-    """Klasördäki ähli .dbc faýllaryny sanaw hökmünde return et"""
-    if folder is None:
-        # Default: dbc_files folder
-        folder = os.path.join(_SCRIPT_DIR, 'dbc_files')
-        if not os.path.exists(folder):
-            # Fallback to current dir if dbc_files doesn't exist
-            folder = _SCRIPT_DIR
-            
-    files  = glob.glob(os.path.join(folder, '*.dbc'))
-    return sorted([os.path.basename(f) for f in files])
+    """Find all .dbc files in bundled + app directories"""
+    if folder is not None:
+        files = glob.glob(os.path.join(folder, '*.dbc'))
+        return sorted([os.path.basename(f) for f in files])
+
+    # Search multiple locations and merge results
+    seen = set()
+    result = []
+
+    # 1. Bundled dbc_files/ (inside _MEIPASS or script dir)
+    for base in [_BUNDLE_DIR, _APP_DIR]:
+        for sub in ['dbc_files', '.']:
+            search_dir = os.path.join(base, sub)
+            if os.path.isdir(search_dir):
+                for f in glob.glob(os.path.join(search_dir, '*.dbc')):
+                    name = os.path.basename(f)
+                    if name not in seen:
+                        seen.add(name)
+                        result.append(name)
+
+    return sorted(result)
+
+
+def _find_dbc_path(filename):
+    """Search bundled + app directories for a DBC file, return full path or None"""
+    for base in [_APP_DIR, _BUNDLE_DIR]:
+        for sub in ['dbc_files', '.']:
+            candidate = os.path.join(base, sub, filename)
+            if os.path.isfile(candidate):
+                return candidate
+    return None
 
 
 def load_dbc(filename, folder=None):
@@ -62,12 +103,12 @@ def load_dbc(filename, folder=None):
     DBC faýlyny cantools bilen ýükle.
     Returns: (db, info_dict) ýa-da (None, error_str)
     """
-    if folder is None:
-        folder = os.path.join(_SCRIPT_DIR, 'dbc_files')
-        if not os.path.exists(os.path.join(folder, filename)):
-            folder = _SCRIPT_DIR
-
-    filepath = os.path.join(folder, filename)
+    if folder is not None:
+        filepath = os.path.join(folder, filename)
+    else:
+        filepath = _find_dbc_path(filename)
+        if filepath is None:
+            return None, f"File not found: {filename}"
 
     if not os.path.isfile(filepath):
         return None, f"Faýl tapylmady: {filepath}"

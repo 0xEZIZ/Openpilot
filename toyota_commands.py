@@ -9,6 +9,7 @@ import threading
 import time
 from config import (
     ID_STEERING_LKA as DEFAULT_STEER_ID,
+    ID_STEERING_IPAS as DEFAULT_IPAS_ID,
     ID_ACC_CONTROL as DEFAULT_ACCEL_ID,
     MAX_STEER_TORQUE, MIN_STEER_TORQUE,
     MAX_ACCEL_MPS2, MIN_ACCEL_MPS2,
@@ -57,6 +58,63 @@ def encode_steering_lka(torque: int, counter: int, steer_request: bool = True, m
     data[2] = t_bytes & 0xFF                            # TORQUE low byte
     data[3] = 0x00                                      # LKA_STATE
     data[4] = toyota_checksum(msg_id, data)
+
+    return bytes(data)
+
+
+# ======================================================================
+# STEERING_IPAS Encoder — Durka ruly dolandyrmak
+# ======================================================================
+def encode_steering_ipas(angle_deg: float, state: int = 3, msg_id: int = DEFAULT_IPAS_ID) -> bytes:
+    """
+    STEERING_IPAS (CAN ID: 0x266, 8 bayt) — Durka ishleyar!
+
+    DBC signallary:
+      STATE         : 7|4@0+   -> byte0 bits[7:4]  (3=enabled)
+      ANGLE         : 3|12@0-  -> byte0[3:0]+byte1  (signed, factor=1.5)
+      SET_ME_X10    : 23|8@0+  -> byte2 = 0x10
+      SET_ME_X00    : 31|8@0+  -> byte3 = 0x00
+      DIRECTION_CMD : 38|2@0+  -> byte4 bits[6:5] (1=left, 2=center, 3=right)
+      SET_ME_X40    : 47|8@0+  -> byte5 = 0x40
+      SET_ME_X00    : 55|8@0+  -> byte6 = 0x00
+      CHECKSUM      : 63|8@0+  -> byte7
+
+    angle_deg: -510 ... +510 gradus (+ = saga, - = cepe)
+    state: 3 = enabled, 1 = disabled
+    """
+    angle_deg = max(-510.0, min(510.0, angle_deg))
+
+    # Factor = 1.5 deg per unit
+    angle_raw = int(angle_deg / 1.5)
+    # 12-bit signed
+    if angle_raw < 0:
+        angle_raw = angle_raw & 0xFFF
+
+    # Direction
+    if angle_deg > 0.5:
+        direction = 3   # right (saga)
+    elif angle_deg < -0.5:
+        direction = 1   # left (cepe)
+    else:
+        direction = 2   # center
+
+    data = bytearray(8)
+    # byte0: STATE[7:4] | ANGLE_high[3:0]
+    data[0] = ((state & 0x0F) << 4) | ((angle_raw >> 8) & 0x0F)
+    # byte1: ANGLE_low[7:0]
+    data[1] = angle_raw & 0xFF
+    # byte2: SET_ME_X10
+    data[2] = 0x10
+    # byte3: SET_ME_X00
+    data[3] = 0x00
+    # byte4: DIRECTION_CMD[6:5] (bits 38|2 -> byte4 bits 6,5)
+    data[4] = (direction & 0x03) << 5
+    # byte5: SET_ME_X40
+    data[5] = 0x40
+    # byte6: SET_ME_X00
+    data[6] = 0x00
+    # byte7: checksum
+    data[7] = toyota_checksum(msg_id, data)
 
     return bytes(data)
 
@@ -114,14 +172,16 @@ class ToyotaCommander:
         cmdr.stop()               # Hemme zady howpsuz dur
     """
 
-    def __init__(self, can_interface, steer_id=DEFAULT_STEER_ID, accel_id=DEFAULT_ACCEL_ID):
+    def __init__(self, can_interface, steer_id=DEFAULT_STEER_ID, accel_id=DEFAULT_ACCEL_ID,
+                 ipas_id=DEFAULT_IPAS_ID):
         self.can     = can_interface
         self._lock   = threading.Lock()
         self._stop   = threading.Event()
-        
+
         # CAN IDs
         self.steer_id = steer_id
         self.accel_id = accel_id
+        self.ipas_id  = ipas_id
 
         # Häzirki gymmatlar
         self._steer_torque  = 0
@@ -129,6 +189,11 @@ class ToyotaCommander:
         self._steer_active  = False
         self._accel_active  = False
         self._counter       = 0
+
+        # IPAS rejimi (durka ruly dolandyrmak)
+        self._ipas_mode     = False
+        self._ipas_angle    = 0.0     # gradus (-510...+510)
+        self._ipas_active   = False
 
         self._thread = None
 
@@ -149,8 +214,11 @@ class ToyotaCommander:
         with self._lock:
             self._steer_active = False
             self._accel_active = False
+            self._ipas_active = False
+            self._ipas_mode = False
             self._steer_torque = 0
             self._accel_mps2 = 0.0
+            self._ipas_angle = 0.0
         self.safety.reset()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
@@ -174,6 +242,27 @@ class ToyotaCommander:
         with self._lock:
             self._steer_torque = 0
             self._steer_active = False
+            self._ipas_active = False
+            self._ipas_angle = 0.0
+        self.safety.watchdog.clear_steer()
+
+    # ------------------------------------------------------------------
+    def set_ipas_angle(self, angle_deg: float):
+        """IPAS rejimi: ruly burca iber (durka ishleyar!)
+        angle_deg: -510...+510 gradus (+ = saga, - = cepe)
+        """
+        with self._lock:
+            self._ipas_angle = max(-510.0, min(510.0, float(angle_deg)))
+            self._ipas_active = True
+            self._ipas_mode = True
+        self.safety.notify_steer_cmd()
+
+    def stop_ipas(self):
+        """IPAS ruly buyrugyny bes et"""
+        with self._lock:
+            self._ipas_angle = 0.0
+            self._ipas_active = False
+        self.safety.watchdog.clear_steer()
 
     # ------------------------------------------------------------------
     def set_accel(self, accel_mps2: float):
@@ -188,6 +277,7 @@ class ToyotaCommander:
         with self._lock:
             self._accel_mps2   = 0.0
             self._accel_active = False
+        self.safety.watchdog.clear_accel()
 
     # ------------------------------------------------------------------
     def get_safety_status(self) -> dict:
@@ -207,9 +297,28 @@ class ToyotaCommander:
                 accel_active = self._accel_active
                 torque       = self._steer_torque
                 accel        = self._accel_mps2
+                ipas_active  = self._ipas_active
+                ipas_angle   = self._ipas_angle
+                ipas_mode    = self._ipas_mode
+
+            # --- IPAS: Durka ruly dolandyrmak ---
+            if ipas_mode and self.ipas_id is not None:
+                if ipas_active:
+                    self.safety.notify_steer_cmd()
+
+                msg = encode_steering_ipas(
+                    ipas_angle if ipas_active else 0.0,
+                    state=3 if ipas_active else 1,
+                    msg_id=self.ipas_id
+                )
+                self.can.send(self.ipas_id, msg)
 
             # --- Safety: Ruly torque barla we çäklendir ---
-            if self.steer_id is not None:
+            elif self.steer_id is not None:
+                # Feed watchdog every frame while actively steering
+                if steer_active:
+                    self.safety.notify_steer_cmd()
+
                 safe_torque, steer_request = self.safety.apply_steer(
                     torque if steer_active else 0,
                     steer_active
@@ -225,6 +334,10 @@ class ToyotaCommander:
 
             # --- Safety: Accel barla we çäklendir ---
             if self.accel_id is not None:
+                # Feed watchdog every frame while actively accelerating
+                if accel_active:
+                    self.safety.notify_accel_cmd()
+
                 safe_accel, permit_braking, cancel = self.safety.apply_accel(
                     accel if accel_active else 0.0,
                     accel_active

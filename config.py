@@ -10,6 +10,10 @@ CAN_BITRATE    = 500000     # Toyota = 500 kbps
 # Demo mode (real hardware ýok bolsa True)
 DEMO_MODE = False
 
+# --- Network (ESP32 Wireless Bridge) ---
+ESP32_IP   = '192.168.4.1'   # ESP32 Access Point IP
+ESP32_PORT = 12345           # UDP port
+
 # --- Toyota Corolla 2017 - Okamak üçin CAN ID-ler ---
 ID_STEER_ANGLE  = 0x25     # 37  - Ruletka burçy
 ID_WHEEL_SPEEDS = 0xAA     # 170 - 4 tigiriň tizligi
@@ -23,7 +27,9 @@ ID_GAS_HYBRID   = 0x245    # 581 - Gaz pedaly (hybrid)
 ID_STEER_TORQ   = 0x260    # 608 - Sürüji torque sensory
 
 # --- Gözegçilik üçin CAN ID-ler (ibermek) ---
-ID_STEERING_LKA = 0x2E4    # 740 - Ruly buýrugy (STEERING_LKA)
+ID_STEERING_LKA = 0x2E4    # 740 - Ruly buýrugy (STEERING_LKA) — 40+ km/h
+ID_STEERING_IPAS = 0x266   # 614 - Ruly buýrugy (STEERING_IPAS) — 0 km/h, durka ishleyar
+ID_STEERING_IPAS_COMMA = 0x167  # 359 - IPAS Comma usuly (Park Assist ECU bilen)
 ID_ACC_CONTROL  = 0x343    # 835 - Tizlendirmek/haýallatmak
 
 # --- Çäkler ---

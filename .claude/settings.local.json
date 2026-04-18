@@ -18,7 +18,9 @@
       "Bash(echo:*)",
       "Bash(python -m pytest test_all.py test_safety.py -v)",
       "Bash(python test_all.py)",
-      "Bash(python test_safety.py)"
+      "Bash(python test_safety.py)",
+      "Bash(python -c \":*)",
+      "Bash(python:*)"
     ]
   }
 }

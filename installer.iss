@@ -1,12 +1,11 @@
-; Inno Setup 6 script -- Toyota CAN Dashboard Installer
+; Inno Setup 6 script -- ADU OpenPilot CAN Dashboard Installer
 ; Download Inno Setup: https://jrsoftware.org/isdl.php
-; Build: Run build_installer.bat  OR  open this file in Inno Setup IDE
+; Build: pyinstaller ADU_OpenPilot.spec  THEN  compile this .iss
 
-#define AppName      "Toyota CAN Dashboard"
+#define AppName      "ADU OpenPilot"
 #define AppVersion   "1.0"
-#define AppPublisher "Toyota CAN Project"
-#define AppExeName   "CAN_Dashboard.exe"
-#define SourceDir    "dist\CAN_Dashboard"
+#define AppPublisher "ADU Project"
+#define AppExeName   "ADU_OpenPilot.exe"
 
 [Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
@@ -32,8 +31,15 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Files]
-; Copy the entire onedir build output
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Main EXE (onefile build)
+Source: "dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+; Include bundled DBC files so user has them next to EXE
+Source: "dbc_files\*.dbc"; DestDir: "{app}\dbc_files"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "*.dbc"; DestDir: "{app}\dbc_files"; Flags: ignoreversion skipifsourcedoesntexist
+
+[Dirs]
+; Create dbc_files directory (user can add their own DBC files here)
+Name: "{app}\dbc_files"
 
 [Icons]
 ; Start Menu

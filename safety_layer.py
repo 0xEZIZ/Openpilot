@@ -227,6 +227,14 @@ class CommandWatchdog:
 
         return result
 
+    def clear_steer(self):
+        """Steer buýrugy bilgeşleýin durzuldy — timeout etme"""
+        self._steer_active = False
+
+    def clear_accel(self):
+        """Accel buýrugy bilgeşleýin durzuldy — timeout etme"""
+        self._accel_active = False
+
     def reset(self):
         self._steer_active = False
         self._accel_active = False
