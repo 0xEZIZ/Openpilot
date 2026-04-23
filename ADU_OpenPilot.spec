@@ -24,9 +24,9 @@ if os.path.isdir(dbc_sub):
 
 # Sound, Logo, and Font assets (skip if missing to avoid build failure)
 for asset in ['ENGINE BMW.wav', 'logo (2).jpg', 'Quantum.otf']:
-    asset_path = os.path.join(BASE_DIR, asset)
+    asset_path = os.path.join(BASE_DIR, 'assets', asset)
     if os.path.isfile(asset_path):
-        added_files.append((asset_path, '.'))
+        added_files.append((asset_path, 'assets'))
     else:
         print(f"WARNING: asset not found, skipping: {asset}")
 
@@ -137,5 +137,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='logo.ico',
+    icon='assets/logo.ico',
 )

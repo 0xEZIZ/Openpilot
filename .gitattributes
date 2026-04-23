@@ -1,0 +1,17 @@
+# Set default language
+*.py linguist-language=Python
+*.bat linguist-vendored=true
+*.iss linguist-vendored=true
+*.md linguist-vendored=true
+*.txt linguist-vendored=true
+
+# Ignore vendored files / assets / auto-generated
+assets/* linguist-vendored=true
+dbc_files/* linguist-vendored=true
+generator_tmp/* linguist-vendored=true
+firmware/* linguist-vendored=true
+build/* linguist-vendored=true
+dist/* linguist-vendored=true
+venv/* linguist-vendored=true
+tools/* linguist-vendored=true
+scripts/* linguist-vendored=true

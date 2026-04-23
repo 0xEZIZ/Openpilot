@@ -11,7 +11,7 @@ from config import (
 )
 
 # DBC faýlyny ýükle
-_DBC_PATH = os.path.join(os.path.dirname(__file__), 'toyota_corolla_2017.dbc')
+_DBC_PATH = os.path.join(os.path.dirname(__file__), 'dbc_files', 'toyota_corolla_2017.dbc')
 try:
     _DB = cantools.db.load_file(_DBC_PATH)
     _USE_CANTOOLS = True

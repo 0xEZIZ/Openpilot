@@ -3,7 +3,7 @@ Comprehensive verification test for all fixes.
 """
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 1. Test toyota_checksum
 from toyota_commands import toyota_checksum, encode_steering_lka, encode_acc_control
@@ -70,10 +70,11 @@ print("  [OK] KINEMATICS bit extraction correct")
 # 5. Test DBC loading
 print("\n=== DBC LOAD TEST ===")
 from dbc_loader import load_dbc, find_dbc_files
-script_dir = os.path.dirname(os.path.abspath(__file__))
-files = find_dbc_files(script_dir)
+script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dbc_dir = os.path.join(script_dir, 'dbc_files')
+files = find_dbc_files(dbc_dir)
 print(f"  DBC files found: {files}")
-db, info = load_dbc('toyota_corolla_2017.dbc', script_dir)
+db, info = load_dbc('toyota_corolla_2017.dbc', dbc_dir)
 assert db is not None, "DBC load failed!"
 print(f"  Brand: {info['brand']}")
 print(f"  Messages: {info['msg_count']}")

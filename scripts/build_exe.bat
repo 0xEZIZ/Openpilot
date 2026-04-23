@@ -8,10 +8,10 @@ echo   Toyota CAN Dashboard -- .EXE Builder
 echo  =====================================================
 echo.
 
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 REM ── Venv Python ─────────────────────────────────────────────────────────────
-set PYTHON=%~dp0venv\Scripts\python.exe
+set PYTHON="%CD%\venv\Scripts\python.exe"
 if not exist "%PYTHON%" (
     echo [ERROR] venv not found: %PYTHON%
     echo Run setup.bat first to create the virtual environment.

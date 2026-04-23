@@ -8,12 +8,12 @@ echo   Toyota CAN Dashboard -- Installer Builder
 echo  =====================================================
 echo.
 
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 REM ── Step 1: Build EXE first ─────────────────────────────────────────────────
 if not exist "dist\CAN_Dashboard\CAN_Dashboard.exe" (
     echo  [Step 1] Building EXE first...
-    call build_exe.bat
+    call scripts\build_exe.bat
     if errorlevel 1 exit /b 1
 ) else (
     echo  [Step 1] EXE already built: dist\CAN_Dashboard\CAN_Dashboard.exe

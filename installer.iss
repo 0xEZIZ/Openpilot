@@ -35,7 +35,6 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 Source: "dist\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 ; Include bundled DBC files so user has them next to EXE
 Source: "dbc_files\*.dbc"; DestDir: "{app}\dbc_files"; Flags: ignoreversion skipifsourcedoesntexist
-Source: "*.dbc"; DestDir: "{app}\dbc_files"; Flags: ignoreversion skipifsourcedoesntexist
 
 [Dirs]
 ; Create dbc_files directory (user can add their own DBC files here)

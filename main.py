@@ -37,8 +37,8 @@ def get_app_dir():
 
 
 # Resource paths
-LOGO_PATH = resource_path("logo (2).jpg")
-SOUND_PATH = resource_path("ENGINE BMW.wav")
+LOGO_PATH = resource_path("assets/logo (2).jpg")
+SOUND_PATH = resource_path("assets/ENGINE BMW.wav")
 
 def play_engine_sound():
     try:

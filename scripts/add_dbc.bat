@@ -8,7 +8,7 @@ echo  ============================================
 echo.
 
 set OPENDBC=D:\opendbc-master\opendbc-master\opendbc\dbc
-set DEST=%~dp0
+set DEST=%~dp0..\dbc_files\
 
 if not exist "%OPENDBC%" (
     echo [YALNYSHLYK] opendbc tapylmady: %OPENDBC%
@@ -22,7 +22,7 @@ echo.
 
 REM ── Toyota/Lexus ────────────────────────────────────────
 echo  [1] Toyota/Lexus
-python "%~dp0merge_dbc.py"
+python "%~dp0..\tools\merge_dbc.py"
 
 REM ── Goni kopiyalanyan fayllar ───────────────────────────
 echo  [2] Honda/Acura
