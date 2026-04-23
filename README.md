@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo (2).jpg" alt="ADU OpenPilot Logo" width="300"/>
+  <img src="assets/logo (2).jpg" alt="ADU OpenPilot Logo" width="500"/>
 
   # 🛡️ ADU OpenPilot 
   **Revolutionary Cyber-Platform for Automotive Reverse Engineering & CAN Exploitation**
