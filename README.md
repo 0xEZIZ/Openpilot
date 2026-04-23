@@ -54,24 +54,54 @@ ADU_OpenPilot/
 
 ---
 
-## 🚀 Ulanmaga Başlamak
+## 🚀 Gurmak we Işletmek
 
-### Talap Edilmeler
-Guraly operasiýa ulgamyňyza gurnamak üçin (Python 3.10+ maslahat berilýär):
+### Gurmak
 ```bash
-pip install -r requirements.txt
+pip install python-can cantools
 ```
 
-### Işe Başlamak (Execution)
-1. Öz CAN interfeýsiňizi (IXXAT ýa-da gizlin ESP32 implant) awtoulagyň CAN-H we CAN-L çyzyklaryna birikdiriň.
-2. C2 (Command & Control) panelini işlediň:
+### Işletmek
+
+#### 1. IXXAT bilen (real maşyn)
 ```bash
-# Apparat bilen işjeň baglanyşyk (Real Hacking Mode)
 python main.py
-
-# Daşary analiz we tanyşlyk (Simulýasiýa we Taýýarlyk - Demo mod)
-python main.py --demo
+# Soň GUI-de "ixxat (IXXAT)" saýla → Birikdir
 ```
+
+#### 2. Demo mod (hardware ýok, synag üçin)
+```bash
+python main.py --demo
+# ýa-da GUI-de "demo (Ýasama)" saýla
+```
+
+## 🔌 Birikdirmek tertibi
+1. IXXAT USB-to-CAN → kompýutere birikdir
+2. OBD-II kabel → maşynyň OBD portuna birikdir
+3. Maşyny ýak (ACC işlemesi üçin)
+4. `python main.py` → Birikdir düwmäni bas
+
+## 📊 Näme görünýär
+- Tizlık (hızometer bilen)
+- Ruletka burçy (-500° ~ +500°)
+- Gaz pedaly %
+- Tormoz ýagdaýy
+- 4 tigiriň aýratyn tizligi
+- Kruiz ýagdaýy
+
+## 🕹️ Ruly gözegçiligi
+- ◀◀ Çepe / Saga ▶▶ → güýçli öwürmek
+- ◀ Ýuwaş Çepe / Sag ▶ → ýuwaş öwürmek
+- Slider → öz torque gymmatyny saýla (-1500 ~ +1500)
+
+## 🏎️ Gaz gözegçiligi
+- ▲ Tizlendir → +1.5 m/s²
+- ▼ Haýalla → -2.0 m/s²
+- Slider → -3.5 ~ +2.0 m/s² aralygynda
+
+## ⚠️ Goşmaça Duýduryşlar
+> ⚠️ **Real maşynda synag diňe durka ýa-da boş meýdanda geçirilmelidir!**  
+> ⚠️ **LKAS düwmesi bar bolsa (TSS) gözegçilik şol arkaly kabul edilýär.**
 
 ---
 

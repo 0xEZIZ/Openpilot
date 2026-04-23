@@ -54,24 +54,54 @@ ADU_OpenPilot/
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Installation and Execution
 
-### Prerequisites
-To install the tool on your operating system (Python 3.10+ recommended):
+### Installation
 ```bash
-pip install -r requirements.txt
+pip install python-can cantools
 ```
 
 ### Execution
-1. Connect your CAN interface (IXXAT or covert ESP32 implant) to the vehicle's CAN-H and CAN-L lines.
-2. Launch the C2 (Command & Control) panel:
-```bash
-# Active connection with hardware (Real Hacking Mode)
-python main.py
 
-# External analysis and familiarization (Simulation and Prep - Demo Mode)
-python main.py --demo
+#### 1. With IXXAT (Real Vehicle)
+```bash
+python main.py
+# Then in GUI select "ixxat (IXXAT)" → Connect
 ```
+
+#### 2. Demo Mode (No hardware, for testing)
+```bash
+python main.py --demo
+# Or select "demo (Fake)" in the GUI
+```
+
+## 🔌 Connection Procedure
+1. Plug IXXAT USB-to-CAN → into the computer
+2. OBD-II cable → plug into the vehicle's OBD port
+3. Turn on the vehicle (to activate ACC)
+4. `python main.py` → Click the Connect button
+
+## 📊 Dashboard Metrics
+- Speed (via speedometer)
+- Steering Angle (-500° ~ +500°)
+- Throttle Pedal %
+- Brake Status
+- Individual 4-Wheel Speeds
+- Cruise Control Status
+
+## 🕹️ Steering Control
+- ◀◀ Left / Right ▶▶ → sharp turn
+- ◀ Slow Left / Right ▶ → slow turn
+- Slider → select custom torque value (-1500 ~ +1500)
+
+## 🏎️ Throttle Control
+- ▲ Accelerate → +1.5 m/s²
+- ▼ Decelerate → -2.0 m/s²
+- Slider → custom range from -3.5 to +2.0 m/s²
+
+## ⚠️ Additional Warnings
+> ⚠️ **Testing on a real vehicle must only be performed while stationary or in an empty testing ground!**  
+> ⚠️ **If an LKAS button is present (TSS), control is only accepted through it.**
 
 ---
 
